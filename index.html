@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Voice</title>
+</head>
+<body>
+
+<h1>Text-to-Speech Example</h1>
+
+<textarea id="textToSpeak" rows="5" cols="50" placeholder="Type something here..."></textarea><br><br>
+
+<select class="select" id="voiceSelect"></select>
+
+<button id="speakButton">Speak</button>
+
+<script>
+    // Получаем ссылки на textarea, кнопку и селектор
+    const textArea = document.getElementById('textToSpeak');
+    const speakButton = document.getElementById('speakButton');
+    const select = document.getElementById('voiceSelect');
+
+    let voices = [];
+
+    function loadVoices() {
+        voices = window.speechSynthesis.getVoices();
+        
+        // Очищаем селектор и добавляем опции для каждого голоса
+        select.innerHTML = ''; 
+        if (voices.length === 0) {
+            const option = document.createElement('option');
+            option.textContent = 'No voices available';
+            select.appendChild(option);
+            return;
+        }
+        
+        voices.forEach((voice, i) => {
+            const option = document.createElement('option');
+            option.value = i; // Сохраняем индекс голоса
+            option.textContent = `${voice.name} (${voice.lang})`;
+            select.appendChild(option);
+        });
+    }
+
+    // Слушаем событие изменения списка голосов
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices(); // Подстраховка для случаев, когда onvoiceschanged не вызывается
+
+    speakButton.addEventListener('click', () => {
+        const text = textArea.value.trim();
+        if (!text) return alert('Please enter some text to speak!');
+
+        const speech = new SpeechSynthesisUtterance(text);
+
+        if (select.value.length > 0) {
+            const voice = voices[select.value];
+            speech.voice = voice;
+            speech.lang = voice.lang;
+        }
+
+        speech.pitch = 1; // Высота звука (от 0 до 2)
+        speech.rate = 1;  // Скорость речи (от 0.1 до 10)
+        speech.volume = 1; // Громкость (от 0 до 1)
+
+        window.speechSynthesis.cancel(); // Останавливаем все текущие речи перед началом новой
+        window.speechSynthesis.speak(speech);
+    });
+</script>
+
+</body>
+</html>
